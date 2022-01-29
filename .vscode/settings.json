@@ -1,6 +1,11 @@
 {
     "files.associations": {
         "iosfwd": "cpp",
-        "memory": "cpp"
+        "memory": "cpp",
+        "__bit_reference": "cpp",
+        "atomic": "cpp",
+        "chrono": "cpp",
+        "deque": "cpp",
+        "iterator": "cpp"
     }
 }

@@ -19,6 +19,7 @@ namespace ft {
             typedef const value_type*       const_pointer;
             typedef RandomAccessIterator<value_type, pointer, reference>                iterator;
             typedef RandomAccessIterator<value_type, const_pointer, const_reference>    const_iterator;
+            
 
 
         private:

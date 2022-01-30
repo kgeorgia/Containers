@@ -1,7 +1,8 @@
 #ifndef FT_VECTOR_HPP
 # define FT_VECTOR_HPP
 
-#include <memory>
+# include <memory>
+# include "Utils/RandomAccessIterator.hpp"
 
 namespace ft {
 
@@ -16,6 +17,9 @@ namespace ft {
             typedef const value_type&       const_reference;
             typedef value_type*             pointer;
             typedef const value_type*       const_pointer;
+            typedef RandomAccessIterator<value_type, pointer, reference>                iterator;
+            typedef RandomAccessIterator<value_type, const_pointer, const_reference>    const_iterator;
+
 
         private:
             pointer             ptr;

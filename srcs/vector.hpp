@@ -17,8 +17,12 @@ namespace ft {
             typedef const value_type&       const_reference;
             typedef value_type*             pointer;
             typedef const value_type*       const_pointer;
-            typedef RandomAccessIterator<value_type, pointer, reference>                iterator;
-            typedef RandomAccessIterator<value_type, const_pointer, const_reference>    const_iterator;
+
+            typedef RandomAccessIterator<value_type, pointer, reference>                    iterator;
+            typedef RandomAccessIterator<value_type, const_pointer, const_reference>        const_iterator;
+            typedef ReverseRandomAccessIterator<value_type, pointer, reference>             reverse_iterator;
+            typedef ReverseRandomAccessIterator<value_type, const_pointer, const_reference> const_reverse_iterator;
+            
             
 
 
@@ -31,6 +35,8 @@ namespace ft {
         public:
             explicit    vector(const allocator_type &alloc = allocator_type());
             explicit    vector(size_type n, const value_type &val = value_type(), const allocator_type &alloc = allocator_type());
+            vector(iterator first, iterator last, const allocator_type &alloc = allocator_type());
+            vector(const_iterator first, const_iterator last, const allocator_type &alloc = allocator_type());
             vector(const vector &x);
             ~vector();
 
@@ -71,9 +77,17 @@ namespace ft {
 
             // --- Modifiers ---
 
+            void                assign(iterator first, iterator last);
+            void                assign(const_iterator first, const_iterator last);
             void                assign(size_type n, const value_type &val);
             void                push_back(const value_type &val);
             void                pop_back();
+            iterator            insert(iterator position, const value_type &val);
+            void                insert(iterator position, size_type n, const value_type &val);
+            void                insert(iterator position, iterator first, iterator last);
+            void                insert(iterator position, const_iterator first, const_iterator last);
+            iterator            erase(iterator position);
+            iterator            erase(iterator first, iterator last);            
             void                swap(vector &x);
             void                clear();
     };
@@ -84,7 +98,26 @@ namespace ft {
 
     template< typename T, typename Alloc >
     vector<T, Alloc>::vector(size_type n, const value_type &val = value_type(), const allocator_type &alloc = allocator_type()):
-    alloc(alloc), len_size(n), capacity(n) { this->ptr = new value_type[n](); }
+    alloc(alloc), len_size(n), capacity(n)
+    {
+        this->ptr = new value_type[n]();
+    }
+
+    template<typename T, typename Alloc>
+    vector<T, Alloc>::vector(iterator first, iterator last, const allocator_type &alloc = allocator_type()):
+    alloc(alloc), len_size(last - first), capacity(last - first)
+    {
+        this->ptr = new value_type[this->cap];
+        this->assign(first, last);
+    }
+
+    template<typename T, typename Alloc>
+    vector<T, Alloc>::vector(const_iterator first, const_iterator last, const allocator_type &alloc = allocator_type()):
+    alloc(alloc), len_size(last - first), capacity(last - first)
+    {
+        this->ptr = new value_type[this->cap];
+        this->assign(first, last);
+    }
 
     template< typename T, typename Alloc >
     vector<T, Alloc>::vector(const vector &x):
@@ -111,8 +144,279 @@ namespace ft {
         this->ptr = new value_type[x.capacity]();
         this->capacity = x.capacity;
         this->len_size = x.len_size;
-        
+        this->assign(x.begin(), x.end());
+        return *this;
     }
+
+    template< typename T, typename Alloc >
+    void    vector<T, Alloc>::resise(size_type n, value_type val)
+    {
+        while (n < this->len_size)
+            this->pop_back();
+        if (n > this->capacity)
+            this->reserve(n);
+        while (n > this->len_size)
+            this->push_back(val);
+    }
+
+    template< typename T, typename Alloc >
+    void    vector<T, Alloc>::reserve(size_type n)
+    {
+        if (n <= this->capacity)
+            return;
+        pointer temp = new value_type[n];
+        for (size_type i = 0; i < this->len_size; i++)
+            temp[i] = this->ptr[i];
+        if (this->ptr)
+        {
+            delete []   this->ptr;
+            this->ptr = NULL;
+        }
+        this->ptr = temp;
+        this->capacity = n;
+    }
+
+    template< typename T, typename Alloc >
+    void    vector<T, Alloc>::assign(iterator first, iterator last)
+    {
+        this->clear();
+        while (first != last)
+        {
+            this->push_back(*first);
+            first++;
+        }
+    }
+
+    template< typename T, typename Alloc >
+    void    vector<T, Alloc>::assign(const_iterator first, const_iterator last)
+    {
+        this->clear();
+        while (first != last)
+        {
+            this->push_back(*first);
+            first++;
+        }
+    }
+
+    template< typename T, typename Alloc >
+    void    vector<T, Alloc>::assign(size_type n, const value_type &val)
+    {
+        this->clear();
+        for (size_type i = 0; i < n; i++)
+            this->push_back(val);
+    }
+
+    template< typename T, typename Alloc >
+    void    vector<T, Alloc>::push_back(const value_type &val)
+    {
+        if (this->len_size == this->capacity)
+        {
+            if (this->len_size == 0)
+                this->reserve(2);
+            else
+                this->reserve(this->len_size * 2);
+        }
+        this->ptr[this->len_size] = val;
+        this->len_size++;
+    }
+
+    template< typename T, typename Alloc >
+    void    vector<T, Alloc>::pop_back()
+    {
+        if (this->len_size)
+            this->len_size--;
+    }
+
+    template< typename T, typename Alloc >
+    typename vector<T, Alloc>::iterator vector<T, Alloc>::insert(iterator position, const value_type &val)
+    {
+        vector<T, Alloc> temp(position, this->end());
+        this->len_size -= this->end() - position;
+        this->push_back(val);
+        iterator    it_begin = temp.begin();
+        iterator    it_end = temp.end();
+        while (it_begin != it_end)
+        {
+            this->push_back(*it_begin);
+            it_begin++;
+        }
+    }
+
+    template< typename T, typename Alloc >
+    void vector<T, Alloc>::insert(iterator position, size_type n, const value_type &val)
+    {
+        vector<T, Alloc> temp(position, this->end());
+        this->len_size -= this->end() - position;
+        for (size_type i = 0; i < n; i++)
+            this->push_back(val);
+        iterator    it_begin = temp.begin();
+        iterator    it_end = temp.end();
+        while (it_begin != it_end)
+        {
+            this->push_back(*it_begin);
+            it_begin++;
+        }
+    }
+
+    template< typename T, typename Alloc >
+    void vector<T, Alloc>::insert(iterator position, iterator first, iterator last)
+    {
+        vector<T, Alloc> temp(position, this->end());
+        this->len_size -= this->end() - position;
+        while (first != last)
+        {
+            this->push_back(*first);
+            first++;
+        }
+        iterator    it_begin = temp.begin();
+        iterator    it_end = temp.end();
+        while (it_begin != it_end)
+        {
+            this->push_back(*it_begin);
+            it_begin++;
+        }
+    }
+
+    template< typename T, typename Alloc >
+    void vector<T, Alloc>::insert(iterator position, const_iterator first, const_iterator last)
+    {
+        vector<T, Alloc> temp(position, this->end());
+        this->len_size -= this->end() - position;
+        while (first != last)
+        {
+            this->push_back(*first);
+            first++;
+        }
+        iterator    it_begin = temp.begin();
+        iterator    it_end = temp.end();
+        while (it_begin != it_end)
+        {
+            this->push_back(*it_begin);
+            it_begin++;
+        }
+    }
+
+    template< typename T, typename Alloc >
+    typename vector<T, Alloc>::iterator vector<T, Alloc>::erase(iterator position)
+    {
+        iterator temp(position);
+        iterator it_end = this->end() - 1;
+        while (position != it_end)
+        {
+            *position = *(position + 1);
+            position++;
+        }
+        this->len_size--;
+        return temp;
+    }
+
+    template< typename T, typename Alloc >
+    typename vector<T, Alloc>::iterator vector<T, Alloc>::erase(iterator first, iterator last)
+    {
+        iterator temp(last);
+        iterator it_end = this->end();
+        while (last != it_end)
+        {
+            *first = *last;
+            first++;
+            last++;
+        }
+        this->len_size -= (last - first);
+        return temp;
+    }
+
+    template< typename T, typename Alloc >
+    void    vector<T, Alloc>::swap(vector &x)
+    {
+        vector<T, Alloc> temp = *this;
+        *this = x;
+        x = temp;
+    }
+
+    template< typename T, typename Alloc >
+    void vector<T, Alloc>::clear()
+    {
+        while (this->len_size)
+            this->pop_back();
+    }
+
+    // Non-member function
+
+    template<typename T, typename Alloc>
+    bool    operator==(const vector<T, Alloc> &lhs, const vector<T, Alloc> &rhs)
+    {
+        typename ft::vector<T, Alloc>::const_iterator   begin_lhs = lhs.begin();
+        typename ft::vector<T, Alloc>::const_iterator   begin_rhs = rhs.begin();
+        typename ft::vector<T, Alloc>::const_iterator   end_lhs = lhs.end();
+        typename ft::vector<T, Alloc>::const_iterator   end_rhs = rhs.end();
+
+        while ((begin_lhs != end_lhs) && (begin_rhs != end_rhs))
+        {
+            if (*begin_lhs != *begin_rhs)
+                return false;
+            begin_lhs++;
+            begin_rhs++;
+        }
+        if ((begin_lhs != end_lhs) && (begin_rhs != end_rhs))
+            return false;
+        return true;
+    }
+
+    template<typename T, typename Alloc>
+    bool    operator!=(const vector<T, Alloc> &lhs, const vector<T, Alloc> &rhs)
+    {
+        if (lhs == rhs)
+            return false;
+        return true;
+    }
+
+    template<typename T, typename Alloc>
+    bool    operator<(const vector<T, Alloc> &lhs, const vector<T, Alloc> &rhs)
+    {
+        typename ft::vector<T, Alloc>::const_iterator   begin_lhs = lhs.begin();
+        typename ft::vector<T, Alloc>::const_iterator   begin_rhs = rhs.begin();
+        typename ft::vector<T, Alloc>::const_iterator   end_lhs = lhs.end();
+        typename ft::vector<T, Alloc>::const_iterator   end_rhs = rhs.end();
+
+        while (begin_lhs != end_lhs)
+        {
+            if ((begin_rhs != end_rhs) && (*begin_lhs > *begin_rhs))
+                return false;
+            else if (*begin_lhs < *begin_rhs)
+                return true;
+            begin_lhs++;
+            begin_rhs++;
+        }
+        
+        return (begin_rhs != end_rhs);
+    }
+
+    template<typename T, typename Alloc>
+    bool    operator>(const vector<T, Alloc> &lhs, const vector<T, Alloc> &rhs)
+    {
+        return (rhs < lhs);
+    }
+
+    template<typename T, typename Alloc>
+    bool    operator<=(const vector<T, Alloc> &lhs, const vector<T, Alloc> &rhs)
+    {
+        return !(rhs < lhs);
+    }
+
+    template<typename T, typename Alloc>
+    bool    operator>=(const vector<T, Alloc> &lhs, const vector<T, Alloc> &rhs)
+    {
+        return !(lhs < rhs);
+    }
+
+    template<typename T, typename Alloc>
+    void    swap(vector<T, Alloc> &x, vector<T, Alloc> &y)
+    {
+        vector<T, Alloc> temp = x;
+        x = y;
+        y = temp;
+    }
+
 }
 
 #endif

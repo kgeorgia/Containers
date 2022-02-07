@@ -96,14 +96,14 @@ namespace ft
     }
 
     template<class T>
-    TreeNode<T>    *insert(TreeNode<T> *node, T value)
+    TreeNode<T>    *insertNode(TreeNode<T> *node, T value)
     {
         if (!node)
             return new TreeNode<T>(value);
         if (value < node->value)
-            node->left = insert(node->left, value);
+            node->left = insertNode(node->left, value);
         else
-            node->right = insert(node->right, value);
+            node->right = insertNode(node->right, value);
 
         return balance(node);
     }
@@ -111,13 +111,13 @@ namespace ft
     template<class T>
     TreeNode<T>    *findMin(TreeNode<T> *node)
     {
-        return node->left ? findMin(node->left) : node;
+        return (node->left && !node->left->end) ? findMin(node->left) : node;
     }
 
     template<class T>
     TreeNode<T>    *findMax(TreeNode<T> *node)
     {
-        return node->right ? findMax(node->right) : node;
+        return (node->right && !node->right->end) ? findMax(node->right) : node;
     }
 
     template<class T>
@@ -131,14 +131,14 @@ namespace ft
     }
 
     template<class T>
-    TreeNode<T>    *remove(TreeNode<T> *node, T value)
+    TreeNode<T>    *removeNode(TreeNode<T> *node, T value)
     {
         if (!node)
             return NULL;
         if (value < node->value)
-            node->left = remove(node->left, value);
+            node->left = removeNode(node->left, value);
         else if (value > node->value)
-            node->right = remove(node->right, value);
+            node->right = removeNode(node->right, value);
         else
         {
             TreeNode<T> *left = node->left;

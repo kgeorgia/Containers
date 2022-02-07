@@ -32,12 +32,12 @@ namespace ft
 
             reference   operator*() const
             {
-                return this->value;
+                return this->ptr->value;
             }
 
             pointer     operator->() const
             {
-                return &(ptr->value);
+                return &(this->ptr->value);
             }
 
             BidirectionalTreeIterator   &operator++()

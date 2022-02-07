@@ -11,6 +11,20 @@
         "unordered_map": "cpp",
         "vector": "cpp",
         "map": "cpp",
-        "utility": "cpp"
-    }
+        "utility": "cpp",
+        "array": "cpp",
+        "string_view": "cpp",
+        "__hash_table": "cpp",
+        "__split_buffer": "cpp",
+        "__tree": "cpp",
+        "stack": "cpp",
+        "bitset": "cpp",
+        "initializer_list": "cpp",
+        "tuple": "cpp",
+        "type_traits": "cpp",
+        "__locale": "cpp",
+        "__string": "cpp",
+        "__node_handle": "cpp"
+    },
+    "C_Cpp.errorSquiggles": "Disabled"
 }

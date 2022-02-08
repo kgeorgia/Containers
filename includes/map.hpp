@@ -6,7 +6,8 @@
 
 namespace ft
 {
-    template<class Key, class T, class Compare = std::less<Key>, class Alloc = std::allocator< pair<const Key, T> >
+
+    template<class Key, class T, class Compare = std::less<Key>, class Alloc = std::allocator< pair<const Key, T> > >
     class map
     {
         public:
@@ -23,10 +24,10 @@ namespace ft
             typedef std::ptrdiff_t              difference_type;
             typedef TreeNode<value_type>*       node;
 
-            typedef ft::BidirectionalTreeIterator<T>            iterator;
-            typedef ft::RevBidirectionalTreeIterator<T>         reverse_iterator;
-            typedef ft::BidirectionalTreeIterator<const T>      const_iterator;
-            typedef ft::RevBidirectionalTreeIterator<const T>   const_reverse_iterator;
+            typedef ft::BidirectionalTreeIterator<TreeNode<value_type> >            iterator;
+            typedef ft::RevBidirectionalTreeIterator<TreeNode<value_type> >         reverse_iterator;
+            typedef ft::BidirectionalTreeIterator<const TreeNode<value_type> >      const_iterator;
+            typedef ft::RevBidirectionalTreeIterator<const TreeNode<value_type> >   const_reverse_iterator;
 
             class value_compare
             {
@@ -63,12 +64,12 @@ namespace ft
             map( InputIt first, InputIt last, const Compare& comp = Compare(), const Alloc& alloc = Alloc() )
             {
                 this->alloc = alloc;
-                this->comp = alloc;
+                this->comp = comp;
                 this->root = NULL;
                 this->leftEnd = NULL;
                 this->rightEnd = NULL;
                 this->length = 0;
-                this->insert(other.begin(), other.end())
+                this->insert(first, last);
             }
 
             ~map();
@@ -77,20 +78,20 @@ namespace ft
 
             //Iterators
             iterator                begin() { return iterator(findMin(this->root)); }
-            const_iterator          begin() { return const_iterator(findMin(this->root)); }
+            const_iterator          begin() const { return const_iterator(findMin(this->root)); }
             iterator                end() { return iterator(this->rightEnd); }
-            const_iterator          end() { return const_iterator(this->rightEnd); }
+            const_iterator          end() const { return const_iterator(this->rightEnd); }
 
             reverse_iterator        rbegin() { return reverse_iterator(findMax(this->root)); }
-            const_reverse_iterator  rbegin() { return const_reverse_iterator(findMax(this->root))}
+            const_reverse_iterator  rbegin() const { return const_reverse_iterator(findMax(this->root)); }
             reverse_iterator        rend() { return reverse_iterator(this->leftEnd); }
-            const_reverse_iterator  rend() { return const_reverse_iterator(this->leftEnd); }
+            const_reverse_iterator  rend() const { return const_reverse_iterator(this->leftEnd); }
 
             //Capacity
 
             bool        empty() const { return (this->length == 0); }
             size_type   size() const { return this->length; }
-            size_type   max_size() const { return (std::numeric_limits<size_type>::max() / sizeof(TreeNode< pair<Key, T> >))}
+            size_type   max_size() const { return (std::numeric_limits<size_type>::max() / sizeof(TreeNode< pair<Key, T> >)); }
 
             //Element access
 			mapped_type &operator[](const key_type& k);
@@ -109,7 +110,8 @@ namespace ft
 			{
 				while (first != last)
 				{
-					this->insert(*first);
+                    value_type  tmp = *first;
+					this->insert(tmp);
 					++first;
 				}
 			}
@@ -153,12 +155,12 @@ namespace ft
     map<Key, T, Compare, Alloc>::map(const map<Key, T> &other)
     {
 	    this->alloc = other.alloc;
-        this->comp = other.alloc;
+        this->comp = other.comp;
         this->root = NULL;
         this->leftEnd = NULL;
         this->rightEnd = NULL;
         this->length = 0;
-        this->insert(other.begin(), other.end())
+        this->insert(other.begin(), other.end());
     }
 
     template <class Key, class T, class Compare, class Alloc >
@@ -172,7 +174,7 @@ namespace ft
     {
         if (this->root)
             this->clear();
-        this->insert(other.begin(), other.end())
+        this->insert(other.begin(), other.end());
     }
 
     template <class Key, class T, class Compare, class Alloc >
@@ -183,11 +185,11 @@ namespace ft
 	    {
 		    return tmp->second;
 	    }
-	    return (this->insert(std::make_pair(k, mapped_type())).first->second);
+	    return (this->insert(make_pair(k, mapped_type())).first->second);
     }
 
     template <class Key, class T, class Compare, class Alloc >
-    std::pair<typename map<Key, T, Compare, Alloc>::iterator, bool> map<Key, T, Compare, Alloc>::insert(const value_type &value)
+    pair<typename map<Key, T, Compare, Alloc>::iterator, bool> map<Key, T, Compare, Alloc>::insert(const value_type &value)
     {
         node    minNode;
         node    maxNode;
@@ -200,21 +202,21 @@ namespace ft
         else
         {
             iterator temp = this->find(value.first);
-            if ((temp != this->end())
-		        return (std::make_pair(temp, false));
+            if (temp != this->end())
+		        return (make_pair(temp, false));
             minNode = findMin(this->root);
             maxNode = findMax(this->root);
             minNode->left = NULL;
             maxNode->right = NULL;
         }
-	    this->_length++;
+	    this->length++;
         this->root = insertNode(this->root, value);
         this->root = findAllParents(this->root);
         minNode = findMin(this->root);
         maxNode = findMax(this->root);
         minNode->left = this->leftEnd;
         maxNode->right = this->rightEnd;
-	    return (std::make_pair(iterator(this->find(value.first)), true));
+	    return (make_pair(iterator(this->find(value.first)), true));
     }
 
     template <class Key, class T, class Compare, class Alloc >
@@ -235,7 +237,7 @@ namespace ft
         minNode->left = NULL;
         maxNode->right = NULL;
 	    this->root = removeNode(this->root, *position);
-        this->_length--;
+        this->length--;
         this->root = findAllParents(this->root);
         minNode = findMin(this->root);
         maxNode = findMax(this->root);
@@ -283,23 +285,6 @@ namespace ft
         this->root = NULL;
         this->leftEnd = NULL;
         this->rightEnd = NULL;
-    }
-
-    template <class Key, class T, class Compare, class Alloc >
-    typename map<Key, T, Compare, Alloc>::iterator map<Key, T, Compare, Alloc>::find(const key_type &value)
-    {
-        node    tempNode = this->root;
-
-	    while (tempNode != NULL)
-        {
-            if (value < tempNode->value.first)
-                tempNode = tempNode->left;
-            else if (value > tempNode->value.first)
-                tempNode = tempNode->right;
-            else
-                return iterator(tempNode);
-        }
-	    return (this->end());
     }
 
     template <class Key, class T, class Compare, class Alloc >

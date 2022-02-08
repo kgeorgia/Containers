@@ -21,9 +21,8 @@ namespace ft
         size_type       height;
         bool            end;
 
-        TreeNode(T val, bool isEnd = false)
+        TreeNode(T val, bool isEnd = false): value(val)
         {
-            value = val;
             left = NULL;
             right = NULL;
             parent = NULL;
@@ -121,19 +120,6 @@ namespace ft
     }
 
     template<class T>
-    TreeNode<T>    *findNode(TreeNode<T> *node)
-    {
-        if (!node)
-            return NULL;
-        if (value < node->value)
-            node->left = removeNode(node->left, value);
-        else if (value > node->value)
-            node->right = removeNode(node->right, value);
-        else
-            return node;
-    }
-
-    template<class T>
     TreeNode<T>    *removeMin(TreeNode<T> *node)
     {
         if (node->left == NULL)
@@ -181,14 +167,14 @@ namespace ft
         return node;
     }
 
-    template<class T>
-    bool    isLeftChild(TreeNode<T> *node)
+    template<class NodePtr>
+    bool    isLeftChild(NodePtr *node)
     {
         return node == node->parent->left; 
     }
 
-    template<class T>
-    TreeNode<T>    *treeNextIter(TreeNode<T> *x)
+    template<class NodePtr>
+    NodePtr    *treeNextIter(NodePtr *x)
     {
         if (x->right)
             return findMin(x->right);
@@ -197,8 +183,8 @@ namespace ft
         return x->parent;
     }
 
-    template<class T>
-    TreeNode<T>    *treePrevIter(TreeNode<T> *x)
+    template<class NodePtr>
+    NodePtr    *treePrevIter(NodePtr *x)
     {
         if (x->left)
             return findMax(x->left);

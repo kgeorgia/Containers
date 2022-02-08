@@ -10,10 +10,11 @@ namespace ft
     class BidirectionalTreeIterator
     {
         public:
-            typedef T               value_type;
-            typedef TreeNode<T>     *node_ptr;
-            typedef value_type      &reference;
-            typedef value_type      *pointer;
+            typedef T                           node;
+            typedef T                           *node_ptr;
+            typedef typename T::value_type      value_type;
+            typedef typename T::value_type      &reference;
+            typedef typename T::value_type      *pointer;
 
         private:
             node_ptr    ptr;
@@ -32,7 +33,8 @@ namespace ft
 
             reference   operator*() const
             {
-                return this->ptr->value;
+                value_type *tmp = &this->ptr->value;
+                return *tmp;
             }
 
             pointer     operator->() const
@@ -42,7 +44,7 @@ namespace ft
 
             BidirectionalTreeIterator   &operator++()
             {
-                this->ptr = treeNextIter<T>(this->ptr);
+                this->ptr = treeNextIter(this->ptr);
                 return *this;
             }
 
@@ -56,7 +58,7 @@ namespace ft
 
             BidirectionalTreeIterator   &operator--()
             {
-                this->ptr = treePrevIter<T>(this->ptr);
+                this->ptr = treePrevIter<value_type>(this->ptr);
                 return *this;
             }
 
@@ -83,10 +85,10 @@ namespace ft
     class RevBidirectionalTreeIterator
     {
         public:
-            typedef T               value_type;
-            typedef TreeNode<T>     *node_ptr;
-            typedef value_type      &reference;
-            typedef value_type      *pointer;
+            typedef T                           value_type;
+            typedef T                           *node_ptr;
+            typedef typename T::value_type      &reference;
+            typedef typename T::value_type      *pointer;
 
         private:
             node_ptr    ptr;

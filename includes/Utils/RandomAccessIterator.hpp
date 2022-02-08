@@ -28,7 +28,7 @@ namespace ft
 
         public:
             RandomAccessIterator() { this->ptr = NULL; }
-            RandomAccessIterator(const pointer ptr) { this->ptr = ptr; }
+            RandomAccessIterator(pointer ptr) { this->ptr = ptr; }
             RandomAccessIterator(const iterator &it) { *this = it; }
             ~RandomAccessIterator() {}
 
@@ -93,7 +93,7 @@ namespace ft
                 return *this;
             }
 
-            reference   operator*() { return *this->ptr; }
+            reference   operator*() { return (*this->ptr); }
             pointer     operator->() { return this->ptr; }
             reference   operator[](size_type n) { return *(this->ptr + n); }
 
@@ -115,10 +115,10 @@ namespace ft
             pointer     ptr;
 
         public:
-            RandomAccessIterator() { this->ptr = NULL; }
-            RandomAccessIterator(const pointer ptr) { this->ptr = ptr; }
-            RandomAccessIterator(const iterator &it) { *this = it; }
-            ~RandomAccessIterator() {}
+            ReverseRandomAccessIterator() { this->ptr = NULL; }
+            ReverseRandomAccessIterator(const pointer ptr) { this->ptr = ptr; }
+            ReverseRandomAccessIterator(const iterator &it) { *this = it; }
+            ~ReverseRandomAccessIterator() {}
 
             iterator    &operator=(const iterator &other)
             {

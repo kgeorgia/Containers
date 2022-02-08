@@ -9,19 +9,19 @@ namespace ft {
     template<class T, class Alloc = std::allocator<T> >
     class vector {
         public:
-            typedef T                       value_type;
-            typedef Allocator               allocator_type;
-            typedef size_t                  size_type;
-            typedef ptrdiff_t               difference_type;
-            typedef value_type&             reference;
-            typedef const value_type&       const_reference;
-            typedef value_type*             pointer;
-            typedef const value_type*       const_pointer;
+            typedef T                                               value_type;
+            typedef Alloc                                           allocator_type;
+            typedef size_t                                          size_type;
+            typedef ptrdiff_t                                       difference_type;
+            typedef value_type&                                     reference;
+            typedef const value_type&                               const_reference;
+            typedef value_type*                pointer;
+            typedef const value_type*    const_pointer;
 
-            typedef RandomAccessIterator<value_type, pointer, reference>                    iterator;
-            typedef RandomAccessIterator<value_type, const_pointer, const_reference>        const_iterator;
-            typedef ReverseRandomAccessIterator<value_type, pointer, reference>             reverse_iterator;
-            typedef ReverseRandomAccessIterator<value_type, const_pointer, const_reference> const_reverse_iterator;
+            typedef RandomAccessIterator<value_type, reference, pointer>                    iterator;
+            typedef RandomAccessIterator<value_type, const_reference,  const_pointer>        const_iterator;
+            typedef ReverseRandomAccessIterator<value_type, reference,  pointer>             reverse_iterator;
+            typedef ReverseRandomAccessIterator<value_type, const_reference,  const_pointer> const_reverse_iterator;
             
             
 
@@ -30,7 +30,7 @@ namespace ft {
             pointer             ptr;
             allocator_type      alloc;
             size_type           len_size;
-            size_type           capacity;
+            size_type           cap;
 
         public:
             explicit    vector(const allocator_type &alloc = allocator_type());
@@ -42,11 +42,22 @@ namespace ft {
 
             vector &operator=(const vector &x);
 
+            //Iterators
+			iterator				begin()			{ return iterator(this->ptr);}
+			const_iterator			begin() const	{ return const_iterator(this->ptr);}
+			iterator				end()			{ return iterator(&this->ptr[this->len_size]);}
+			const_iterator			end() const		{ return const_iterator(&this->ptr[this->len_size]);}
+			reverse_iterator		rbegin()		{ return reverse_iterator(&this->ptr[this->len_size - 1]);}
+			const_reverse_iterator	rbegin() const	{ return reverse_iterator(&this->ptr[this->len_size - 1]);}
+			reverse_iterator		rend()			{ return reverse_iterator(this->ptr - 1);}
+			const_reverse_iterator	rend() const	{ return reverse_iterator(this->ptr - 1);}
+
+
             // --- Capacity ---
 
             size_type   size() const { return this->len_size; }
             size_type   max_size() const { return ( std::numeric_limits<size_type>::max() / (sizeof(value_type)));}
-            size_type   capacity() const { return this->capacity; }
+            size_type   capacity() const { return this->cap; }
             bool        empty() const { return !this->len_size; }
 
             void        resise(size_type n, value_type val = value_type());
@@ -55,23 +66,23 @@ namespace ft {
             // --- Element access ---
 
             reference           operator[](size_type n) { return this->ptr[n]; }
-            const_reference     operator[](size_type n) { return this->ptr[n]; }
+            const_reference     operator[](size_type n) const { return this->ptr[n]; }
             reference           front() { return this->ptr[0]; }
-            const_reference     front() { return this->ptr[0]; }
+            const_reference     front() const { return this->ptr[0]; }
             reference           back() { return this->ptr[this->len_size - 1]; }
-            const_reference     back() { return this->ptr[this->len_size - 1]; }
+            const_reference     back() const { return this->ptr[this->len_size - 1]; }
             reference           at(size_type n)
             {
                 if (n < this->len_size)
                     return this->ptr[n];
-                return NULL;
+                throw std::out_of_range("vector");
             }
 
-            const_reference     at(size_type n)
+            const_reference     at(size_type n) const
             {
                 if (n < this->len_size)
                     return this->ptr[n];
-                return NULL;
+                throw std::out_of_range("vector");
             }
 
 
@@ -93,27 +104,29 @@ namespace ft {
     };
 
     template< typename T, typename Alloc >
-    vector<T, Alloc>::vector(const allocator_type &alloc = allocator_type()):
-    ptr(NULL), alloc(alloc), len_size(0), capacity(0) {}
+    vector<T, Alloc>::vector(const allocator_type &alloc):
+    ptr(NULL), alloc(alloc), len_size(0), cap(0) {}
 
     template< typename T, typename Alloc >
-    vector<T, Alloc>::vector(size_type n, const value_type &val = value_type(), const allocator_type &alloc = allocator_type()):
-    alloc(alloc), len_size(n), capacity(n)
+    vector<T, Alloc>::vector(size_type n, const value_type &val, const allocator_type &alloc):
+    alloc(alloc), len_size(n), cap(n)
     {
         this->ptr = new value_type[n]();
+        for (size_type i = 0; i < n; i++)
+		    this->ptr[i] = val;
     }
 
     template<typename T, typename Alloc>
-    vector<T, Alloc>::vector(iterator first, iterator last, const allocator_type &alloc = allocator_type()):
-    alloc(alloc), len_size(last - first), capacity(last - first)
+    vector<T, Alloc>::vector(iterator first, iterator last, const allocator_type &alloc):
+    alloc(alloc), len_size(last - first), cap(last - first)
     {
         this->ptr = new value_type[this->cap];
         this->assign(first, last);
     }
 
     template<typename T, typename Alloc>
-    vector<T, Alloc>::vector(const_iterator first, const_iterator last, const allocator_type &alloc = allocator_type()):
-    alloc(alloc), len_size(last - first), capacity(last - first)
+    vector<T, Alloc>::vector(const_iterator first, const_iterator last, const allocator_type &alloc):
+    alloc(alloc), len_size(last - first), cap(last - first)
     {
         this->ptr = new value_type[this->cap];
         this->assign(first, last);
@@ -121,7 +134,7 @@ namespace ft {
 
     template< typename T, typename Alloc >
     vector<T, Alloc>::vector(const vector &x):
-    ptr(x.ptr), alloc(x.alloc), len_size(x.len_size), capacity(x.capacity) { *this = x; }
+    ptr(x.ptr), alloc(x.alloc), len_size(x.len_size), cap(x.cap) { *this = x; }
 
     template< typename T, typename Alloc >
     vector<T, Alloc>::~vector()
@@ -141,8 +154,8 @@ namespace ft {
             delete[] this->ptr;
             this->ptr = NULL;
         }
-        this->ptr = new value_type[x.capacity]();
-        this->capacity = x.capacity;
+        this->ptr = new value_type[x.cap]();
+        this->cap = x.cap;
         this->len_size = x.len_size;
         this->assign(x.begin(), x.end());
         return *this;
@@ -153,7 +166,7 @@ namespace ft {
     {
         while (n < this->len_size)
             this->pop_back();
-        if (n > this->capacity)
+        if (n > this->cap)
             this->reserve(n);
         while (n > this->len_size)
             this->push_back(val);
@@ -162,7 +175,7 @@ namespace ft {
     template< typename T, typename Alloc >
     void    vector<T, Alloc>::reserve(size_type n)
     {
-        if (n <= this->capacity)
+        if (n <= this->cap)
             return;
         pointer temp = new value_type[n];
         for (size_type i = 0; i < this->len_size; i++)
@@ -173,7 +186,7 @@ namespace ft {
             this->ptr = NULL;
         }
         this->ptr = temp;
-        this->capacity = n;
+        this->cap = n;
     }
 
     template< typename T, typename Alloc >
@@ -209,7 +222,7 @@ namespace ft {
     template< typename T, typename Alloc >
     void    vector<T, Alloc>::push_back(const value_type &val)
     {
-        if (this->len_size == this->capacity)
+        if (this->len_size == this->cap)
         {
             if (this->len_size == 0)
                 this->reserve(2);

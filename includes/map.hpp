@@ -57,11 +57,21 @@ namespace ft
 
         public:
             explicit map( const Compare& comp = Compare(), const Alloc& alloc = Alloc() );
-            template< class InputIt >
-            map( InputIt first, InputIt last, const Compare& comp = Compare(), const Alloc& alloc = Alloc() );
             map( const map<Key, T> &other );
 
-            ~map() {}
+            template< class InputIt >
+            map( InputIt first, InputIt last, const Compare& comp = Compare(), const Alloc& alloc = Alloc() )
+            {
+                this->alloc = alloc;
+                this->comp = alloc;
+                this->root = NULL;
+                this->leftEnd = NULL;
+                this->rightEnd = NULL;
+                this->length = 0;
+                this->insert(other.begin(), other.end())
+            }
+
+            ~map();
 
             map &operator=(const map<Key, T> &other);
 
@@ -133,6 +143,10 @@ namespace ft
     {
         this->alloc = alloc;
         this->comp = comp;
+        this->root = NULL;
+        this->leftEnd = NULL;
+        this->rightEnd = NULL;
+        this->length = 0;
     }
 
     template <class Key, class T, class Compare, class Alloc >
@@ -140,6 +154,10 @@ namespace ft
     {
 	    this->alloc = other.alloc;
         this->comp = other.alloc;
+        this->root = NULL;
+        this->leftEnd = NULL;
+        this->rightEnd = NULL;
+        this->length = 0;
         this->insert(other.begin(), other.end())
     }
 
@@ -191,6 +209,7 @@ namespace ft
         }
 	    this->_length++;
         this->root = insertNode(this->root, value);
+        this->root = findAllParents(this->root);
         minNode = findMin(this->root);
         maxNode = findMax(this->root);
         minNode->left = this->leftEnd;
@@ -217,6 +236,7 @@ namespace ft
         maxNode->right = NULL;
 	    this->root = removeNode(this->root, *position);
         this->_length--;
+        this->root = findAllParents(this->root);
         minNode = findMin(this->root);
         maxNode = findMax(this->root);
         minNode->left = this->leftEnd;
@@ -254,10 +274,138 @@ namespace ft
     template <class Key, class T, class Compare, class Alloc >
     void map<Key, T, Compare, Alloc>::clear()
     {
-	    this->erase(this->begin(), this->end());
+        if (this->root)
+	        this->erase(this->begin(), this->end());
+        if (this->leftEnd)
+            delete this->leftEnd;
+        if (this->rightEnd)
+            delete this->rightEnd;
+        this->root = NULL;
+        this->leftEnd = NULL;
+        this->rightEnd = NULL;
     }
 
+    template <class Key, class T, class Compare, class Alloc >
+    typename map<Key, T, Compare, Alloc>::iterator map<Key, T, Compare, Alloc>::find(const key_type &value)
+    {
+        node    tempNode = this->root;
 
+	    while (tempNode != NULL)
+        {
+            if (value < tempNode->value.first)
+                tempNode = tempNode->left;
+            else if (value > tempNode->value.first)
+                tempNode = tempNode->right;
+            else
+                return iterator(tempNode);
+        }
+	    return (this->end());
+    }
+
+    template <class Key, class T, class Compare, class Alloc >
+    typename map<Key, T, Compare, Alloc>::iterator map<Key, T, Compare, Alloc>::find(const key_type &value)
+    {
+        node    tempNode = this->root;
+
+	    while (tempNode != NULL)
+        {
+            if (value < tempNode->value.first)
+                tempNode = tempNode->left;
+            else if (value > tempNode->value.first)
+                tempNode = tempNode->right;
+            else
+                return iterator(tempNode);
+        }
+	    return (this->end());
+    }
+
+    template <class Key, class T, class Compare, class Alloc >
+    typename map<Key, T, Compare, Alloc>::const_iterator map<Key, T, Compare, Alloc>::find(const key_type &value) const
+    {
+        node    tempNode = this->root;
+
+	    while (tempNode != NULL)
+        {
+            if (value < tempNode->value.first)
+                tempNode = tempNode->left;
+            else if (value > tempNode->value.first)
+                tempNode = tempNode->right;
+            else
+                return const_iterator(tempNode);
+        }
+	    return (this->end());
+    }
+
+    template <class Key, class T, class Compare, class Alloc >
+    typename map<Key, T, Compare, Alloc>::size_type map<Key, T, Compare, Alloc>::count(const key_type &value) const
+    {
+	    const_iterator it_begin = this->begin();
+	    const_iterator it_end = this->end();
+
+	    while (it_begin != it_end)
+	    {
+		    if ((*it_begin).first == value)
+			    return (1);
+		    ++it_begin;
+	    }
+	    return (0);
+    }
+
+    template <class Key, class T, class Compare, class Alloc >
+    typename map<Key, T, Compare, Alloc>::iterator map<Key, T, Compare, Alloc>::lower_bound(const key_type &key)
+    {
+	    iterator it_begin = this->begin();
+	    iterator it_end = this->end();
+	    while (it_begin != it_end)
+	    {
+		    if (this->_comp((*it_begin).first, key) <= 0)
+			    return (it_begin);
+		    ++it_begin;
+	    }
+	    return (it_end);
+    }
+
+    template <class Key, class T, class Compare, class Alloc >
+    typename map<Key, T, Compare, Alloc>::const_iterator map<Key, T, Compare, Alloc>::lower_bound(const key_type &key) const
+    {
+	    const_iterator it_begin = this->begin();
+	    const_iterator it_end = this->end();
+	    while (it_begin != it_end)
+	    {
+		    if (this->_comp((*it_begin).first, key) <= 0)
+			    return (it_begin);
+		    ++it_begin;
+	    }
+	    return (it_end);
+    }
+
+    template <class Key, class T, class Compare, class Alloc >
+    typename map<Key, T, Compare, Alloc>::iterator map<Key, T, Compare, Alloc>::upper_bound(const key_type &key)
+    {
+	    iterator it_begin = this->begin();
+	    iterator it_end = this->end();
+	    while (it_begin != it_end)
+	    {
+		    if ((*it_begin).first != key && this->_comp((*it_begin).first, key) <= 0)
+			    return (it_begin);
+		    ++it_begin;
+	    }
+	    return (it_end);
+    }
+
+    template <class Key, class T, class Compare, class Alloc >
+    typename map<Key, T, Compare, Alloc>::const_iterator map<Key, T, Compare, Alloc>::upper_bound(const key_type &key) const
+    {
+	    const_iterator it_begin = this->begin();
+	    const_iterator it_end = this->end();
+	    while (it_begin != it_end)
+	    {
+		    if ((*it_begin).first != key && this->_comp((*it_begin).first, key) <= 0)
+			    return (it_begin);
+		    ++it_begin;
+	    }
+	    return (it_end);
+    }
 
 }
 

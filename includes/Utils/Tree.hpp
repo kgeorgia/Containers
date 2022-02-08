@@ -121,6 +121,19 @@ namespace ft
     }
 
     template<class T>
+    TreeNode<T>    *findNode(TreeNode<T> *node)
+    {
+        if (!node)
+            return NULL;
+        if (value < node->value)
+            node->left = removeNode(node->left, value);
+        else if (value > node->value)
+            node->right = removeNode(node->right, value);
+        else
+            return node;
+    }
+
+    template<class T>
     TreeNode<T>    *removeMin(TreeNode<T> *node)
     {
         if (node->left == NULL)
